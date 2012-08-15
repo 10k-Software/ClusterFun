@@ -1,0 +1,100 @@
+Deal Cards
+
+Selected Cards
+
+Gameboard Cards
+0 1ROvSo   1 2ROvSo   2 3ROvSo   
+3 1GOvSo   4 2GOvSo   5 3GOvSo   
+
+
+CF > 
+Selected Cards
+0 1ROvSo
+
+Gameboard Cards
+0 2ROvSo   1 3ROvSo   2 1GOvSo   
+3 2GOvSo   4 3GOvSo   
+
+CF > 
+Selected Cards
+
+Gameboard Cards
+0 2ROvSo   1 3ROvSo   2 1GOvSo   
+3 2GOvSo   4 3GOvSo   5 1ROvSo   
+
+
+CF > 
+Selected Cards
+0 2ROvSo
+
+Gameboard Cards
+0 3ROvSo   1 1GOvSo   2 2GOvSo   
+3 3GOvSo   4 1ROvSo   
+Invalid Cluster
+
+Selected Cards
+
+Gameboard Cards
+0 3ROvSo   1 1GOvSo   2 2GOvSo   
+3 3GOvSo   4 1ROvSo   5 2ROvSo   
+
+
+CF > 
+The following commands are valid
+s (card number) : selects the card with givin number
+d (card number) : deselects the card with givin number
+hint : highlights one card that forms a set
+3 more : adds three more cards to the board only if there is no set
+quit : exits the game
+
+
+CF > 
+Selected Cards
+0 3ROvSo
+
+Gameboard Cards
+0 1GOvSo   1 2GOvSo   2 3GOvSo   
+3 1ROvSo   4 2ROvSo   
+
+CF > 
+Selected Cards
+0 3ROvSo
+1 2GOvSo
+
+Gameboard Cards
+0 1GOvSo   1 3GOvSo   2 1ROvSo   
+3 2ROvSo   
+Valid Cluster
+
+Selected Cards
+
+Gameboard Cards
+0 1GOvSo   1 3GOvSo   2 1ROvSo   
+3 2ROvSo   
+
+CF > 
+Selected Cards
+
+Gameboard Cards
+0 1GOvSo   1 3GOvSo   2 *1ROvSo*   
+3 2ROvSo   
+
+CF > Not a valid input
+Time has run out
+A cluster will be chosen for you
+
+Selected Cards
+0 1ROvSo
+1 2ROvSo
+2 1GOvSo
+
+Gameboard Cards
+0 3GOvSo   
+Valid Cluster
+
+Selected Cards
+
+Gameboard Cards
+0 3GOvSo   
+
+CF > 

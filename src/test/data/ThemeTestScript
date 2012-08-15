@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AWTTestScript>
+  <component class="javax.swing.JComboBox" id="JComboBox Instance" index="1" parent="JPanel Instance 5" window="Theme Selection" />
+  <component class="javax.swing.JLayeredPane" id="JLayeredPane Instance" index="1" parent="JRootPane Instance" window="Theme Selection" />
+  <component class="javax.swing.JPanel" id="JPanel Instance" index="1" parent="JPanel Instance 2" window="Theme Selection" />
+  <component class="javax.swing.JPanel" hOrder="1" id="JPanel Instance 2" index="0" parent="JPanel Instance 3" window="Theme Selection" />
+  <component class="javax.swing.JPanel" hOrder="1" id="JPanel Instance 3" index="0" parent="JLayeredPane Instance" window="Theme Selection" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 4" index="0" parent="JPanel Instance" window="Theme Selection" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 5" index="0" parent="JPanel Instance 2" window="Theme Selection" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 6" index="0" parent="JPanel Instance 5" window="Theme Selection" />
+  <component class="javax.swing.JRootPane" id="JRootPane Instance" index="0" parent="Theme Selection" />
+  <component class="javax.swing.JTextPane" id="JTextPane Instance" index="1" parent="JPanel Instance" window="Theme Selection" />
+  <component class="javax.swing.JButton" id="Select" index="0" parent="JPanel Instance 6" text="Select" window="Theme Selection" />
+  <component class="clusterfun.ui.ThemeLoader" id="Theme Selection" root="true" title="Theme Selection" />
+  <component class="javax.swing.JLabel" icon="selection.jpg" id="selection.jpg" index="0" parent="JPanel Instance 4" text="" window="Theme Selection" />
+  <launch args="[]" class="clusterfun.ui.ThemeLoaderDriver" classpath="..\build\classes\;..\" desc="Launch ThemeLoaderDriver.main([])" method="main" />
+  <assert component="JTextPane Instance" method="getText" value="Theme based on the early version of 10k Software's Clusterfun Game." />
+  <assert component="selection.jpg" method="getIcon" value="data/themes/10kTheme/selection.jpg" />
+  <assert component="JComboBox Instance" method="getSelectedItem" value="10kTheme" />
+  <sequence>
+    <action args="JComboBox Instance,defaultTheme" class="javax.swing.JComboBox" method="actionSelectItem" />
+  </sequence>
+  <assert component="JTextPane Instance" method="getText" value="The default theme." />
+  <assert component="selection.jpg" method="getIcon" value="data/themes/defaultTheme/selection.jpg" />
+  <sequence>
+    <action args="JComboBox Instance,greenTheme" class="javax.swing.JComboBox" method="actionSelectItem" />
+  </sequence>
+  <assert component="JTextPane Instance" method="getText" value="Theme based on the Green movement." />
+  <assert component="selection.jpg" method="getIcon" value="data/themes/greenTheme/selection.jpg" />
+  <sequence>
+    <action args="JComboBox Instance,portalTheme" class="javax.swing.JComboBox" method="actionSelectItem" />
+  </sequence>
+  <assert component="JTextPane Instance" method="getText" value="Theme based on the Valve game, Portal." />
+  <assert component="selection.jpg" method="getIcon" value="data/themes/portalTheme/selection.jpg" />
+  <sequence>
+    <action args="JComboBox Instance,10kTheme" class="javax.swing.JComboBox" method="actionSelectItem" />
+    <action args="Select" class="javax.swing.AbstractButton" method="actionClick" />
+  </sequence>
+  <terminate />
+</AWTTestScript>
+

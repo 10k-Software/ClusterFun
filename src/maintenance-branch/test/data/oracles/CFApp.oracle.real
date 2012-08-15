@@ -1,0 +1,26 @@
+CFApp Driver Integration test is running
+Deal Cards
+
+Selected Cards
+
+Gameboard Cards
+0 1RSqSo   1 2RSqSo   2 3RSqSo   
+3 1PSqSo   4 2PSqSo   5 3PSqSo   
+6 1GSqSo   7 2GSqSo   8 3GSqSo   
+9 1RDiSo   10 2RDiSo   11 3RDiSo   
+
+Time Remaining - 0:59
+Score: 0
+
+CF > 
+The following commands are valid
+s (card number) : selects the card with givin number
+d (card number) : deselects the card with givin number
+hint : highlights one card that forms a set
+3 more : adds three more cards to the board only if there is no set
+quit : exits the game
+
+Time Remaining - 0:59
+Score: 0
+
+CF > CFApp Driver Integration test is done

@@ -1,0 +1,1 @@
+java -Xms64m -Xmx512m -Djava.library.path=./lib/native/win32/ -jar ClusterFun.jar

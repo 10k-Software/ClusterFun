@@ -1,0 +1,10 @@
+Exception in thread "main" java.io.IOException: Cannot find: resources/img/theme/defaultTheme/board.jpg
+	at clusterfun.lwjgl.TextureLoader.loadImage(TextureLoader.java:262)
+	at clusterfun.lwjgl.TextureLoader.getTexture(TextureLoader.java:139)
+	at clusterfun.lwjgl.TextureLoader.getTexture(TextureLoader.java:96)
+	at clusterfun.ui.entity.BoardEntity.<init>(BoardEntity.java:51)
+	at clusterfun.ui.state.InGameState.init(InGameState.java:159)
+	at clusterfun.ui.state.SettingsMenuState.init(SettingsMenuState.java:111)
+	at clusterfun.ui.window.GameWindow.initialize(GameWindow.java:241)
+	at clusterfun.ui.GameWindowDriver.<init>(GameWindowDriver.java:25)
+	at clusterfun.ui.GameWindowDriver.main(GameWindowDriver.java:17)

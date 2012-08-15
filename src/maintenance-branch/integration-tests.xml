@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="CF-Integrate" basedir="." default="all-integration-tests">
+
+    <property file="build.properties"/>
+    
+    
+    <path id="junit.lib.path.ref">
+        <fileset dir="lib" includes="junit-4.1.jar"/>
+    </path>
+    
+    <path id="lib.path.ref">
+        <fileset dir="lib" includes="*.jar"/>
+    </path>
+    
+    <property name="main-class"  value="clusterfun.app.CFApp"/>
+
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="${classes.dir}"/>
+        <javac destdir="${classes.dir}" classpath="${src.dir}"
+                debug="true" debuglevel="lines,source">
+            <src path="${src.dir}"/>
+            <classpath refid="lib.path.ref"/>
+            <exclude name="FAKES/**"/>
+        </javac>
+    </target>
+    
+    <target name="compile-test" depends="clean,compile">
+        <javac destdir="${classes.dir}" classpath="${src.dir}:lib/junit-4.1.jar:lib/ant-junit.jar"
+                debug="true" debuglevel="lines,source">
+            <src path="${test.src.dir}"/>
+            <classpath refid="lib.path.ref"/>
+            <include name="clusterfun/**"/>
+        </javac>
+        
+    </target>
+    
+    <target name="junit-tests" depends="compile-test">
+        <junit fork="true" haltonfailure="false" printsummary="on" showoutput="true" dir="." >
+            <classpath path="${classes.dir}:lib/junit-4.1.jar:lib/ant-junit.jar"/>
+            <classpath refid="lib.path.ref"/>
+            <batchtest fork="yes" todir="${reports.dir}">
+                <fileset dir="${test.src.dir}">
+                    <include name="clusterfun/board/**"/>
+                    <include name="clusterfun/logic/**"/>
+                    <include name="clusterfun/message/**"/>
+                    <include name="clusterfun/player/HumanPlayerTest.java"/>
+                    <include name="clusterfun/state/**"/>
+                    <include name="clusterfun/ui/image/**"/>
+                    <include name="clusterfun/ui/CardEntityTest.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+    
+<!-- GraphicUI Driver Test ================================================= -->
+    <target name="GraphicUI-driver">
+        <ant target="clean"/>
+        <!-- Create the classes directory after cleaning up the folders -->
+        <mkdir dir="${classes.dir}"/>
+
+        <!-- Generate the GraphicUI class -->
+        <javac destdir="${classes.dir}" classpath="${javac.classpath}"
+                debug="true" debuglevel="lines,vars,source">
+            <classpath refid="lib.path.ref"/>
+            <src path="${src.dir}"/>
+            <include name="clusterfun/ui/GraphicUI.java"/>
+        </javac>
+        
+        <!-- Generate the fake GraphicUI test driver -->
+        <javac destdir="${classes.dir}"
+                debug="true" debuglevel="lines,vars,source">
+            <classpath path="${javac.test.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <src path="${test.src.dir}"/>
+            <include name="clusterfun/ui/GraphicUIDriver.java"/>
+        </javac>
+        
+        <mkdir dir="${classes.dir}/resources/"/>
+        <copydir src="${src.dir}/resources/" dest="${classes.dir}/resources/"/>
+        
+        <!-- Run the application with a set input and output -->
+        <java classname="clusterfun.ui.GraphicUIDriver"
+                output="test/data/oracles/GraphicUI.results.real"
+                fork="true" jvmargs="-Djava.library.path=./lib/native/linux/">
+            <classpath refid="lib.path.ref"/>
+            <classpath path="${run.classpath}"/>
+            <arg value="-c"/>
+        </java>
+
+        <!-- Check the differences between the output and the oracle -->
+        <exec executable="diff">
+            <arg value="-b"/>
+            <arg file="test/data/oracles/GraphicUI.results.real"/>
+            <arg file="test/data/oracles/GraphicUI.oracle.real"/>
+        </exec>
+    </target>
+    
+<!-- GameWindow Driver Test ================================================ -->
+    <target name="GameWindow-driver">
+        <ant target="clean"/>
+        <!-- Create the classes directory after cleaning up the folders -->
+        <mkdir dir="${classes.dir}"/>
+
+        <!-- Generate the GraphicUI class -->
+        <javac destdir="${classes.dir}" classpath="${javac.classpath}"
+                debug="true" debuglevel="lines,vars,source">
+            <classpath refid="lib.path.ref"/>
+            <src path="${src.dir}"/>
+            <exclude name="clusterfun/ui/state/InGameState*"/>
+            <exclude name="clusterfun/ui/state/SettingsMenuState.java"/>
+            <include name="clusterfun/ui/window/*.java"/>
+            <include name="clusterfun/ui/state/GameState.java"/>
+        </javac>
+
+        <!-- Generate the fake GraphicUI test driver -->
+        <javac destdir="${classes.dir}"
+                debug="true" debuglevel="lines,vars,source">
+            <classpath path="${javac.test.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <src path="${test.src.dir}"/>
+            <include name="clusterfun/ui/GameWindowDriver.java"/>
+        </javac>
+
+        <!-- Run the application with a set input and output -->
+        <java classname="clusterfun.ui.GameWindowDriver"
+                output="test/data/oracles/GameWindow.results.fake"
+                fork="true" jvmargs="-Djava.library.path=./lib/native/linux/">
+            <classpath refid="lib.path.ref"/>
+            <classpath path="${run.classpath}"/>
+            <arg value="-c"/>
+        </java>
+
+        <!-- Check the differences between the output and the oracle -->
+        <exec executable="diff">
+            <arg value="-b"/>
+            <arg file="test/data/oracles/GameWindow.results.real"/>
+            <arg file="test/data/oracles/GameWindow.oracle.real"/>
+        </exec>
+    </target>
+    
+ <!-- CFApp Driver Test ==================================================== -->
+    <target name="CFApp-driver">
+        <ant target="clean"/>
+        <!-- Create the classes directory after cleaning up the folders -->
+        <mkdir dir="${classes.dir}"/>
+        <!-- Generate the GraphicUI class -->
+        <javac destdir="${classes.dir}" classpath="${javac.classpath}"
+                debug="true" debuglevel="lines,vars,source">
+            <classpath refid="lib.path.ref"/>
+            <src path="${src.dir}"/>
+            <include name="clusterfun/ui/BasicUI.java"/>
+            <exclude name="clusterfun/ui/TextUI.java"/>
+            <include name="clusterfun/app/CFApp.java"/>
+        </javac>
+
+        <!-- Generate the fake GraphicUI test driver -->
+        <javac destdir="${classes.dir}"
+                debug="true" debuglevel="lines,vars,source">
+            <classpath path="${javac.test.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <src path="${test.src.dir}"/>
+            <include name="clusterfun/app/CFAppDriver.java"/>
+        </javac>
+
+        <!-- Run the application with a set input and output -->
+        <java classname="clusterfun.app.CFAppDriver"
+        		input="test/data/oracles/CFApp.input.real"
+                output="test/data/oracles/CFApp.results.real"
+                fork="true" jvmargs="-Djava.library.path=./lib/native/linux/">
+        	<arg value="-integrate"/>
+            <classpath refid="lib.path.ref"/>
+            <classpath path="${run.classpath}"/>
+            <arg value="-c"/>
+        </java>
+
+        <!-- Check the differences between the output and the oracle -->
+        <exec executable="diff">
+            <arg value="-b"/>
+            <arg file="test/data/oracles/CFApp.results.real"/>
+            <arg file="test/data/oracles/CFApp.oracle.real"/>
+        </exec>
+    </target>
+    
+    <target name="all-integration-tests" depends="CFApp-driver, GameWindow-driver, GraphicUI-driver, junit-tests"/>
+    
+</project>

@@ -1,0 +1,129 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Untitled Document</title>
+<style type="text/css">
+<!--
+.style1 {
+	font-size: x-large;
+	font-weight: bold;
+}
+-->
+</style>
+</head>
+
+<body>
+<p align="center"><font size="7">ClusterFun High Level Design Document</font></p><br><br>
+<p align="center"><span class="style1">Identification </span></p>
+<p align="left"><br />
+  Project Name: ClusterFun <br />
+  Authors: N. Artman, A. Chan, C. Gibson, L. Hunter, J. Swalwell <br />
+  Version: 0.1 <br />
+Date: 12/1/2008</p>
+<p align="center">&nbsp;</p>
+<p align="center"><span class="style1">Design Overview</span></p>
+<p align="left"><br />
+ClusterFun is a real-time card-clustering game that incorporates three major components: the graphical UI, the logic and clustering systems, and the game board itself.  The UI will use a 3d interface that receives the players' input, decides what action to do (whether it is selecting a card, or accessing a menu) and sends it's input to the game logic which decides the appropriate action.  The game state is changed or modified depending on user menu interactions.  If the user selects cards for a cluster, then the cluster is validated before it is removed from the game board.  This process continues until the state is changed or the user chooses to quit the game.</p>
+<p align="left">  Initially, the CFApp is instantiated and initializes the appropriate classes before beginning the game loop.  The CFLogic class is created along with its CFState class, in which a GameBoard and Deck is created for use in the game.  Once all of these classes have been created, the BasicUI class is created and attached to the currently running game, giving the user a front end to interact with.  Control returns then to the CFApp, which is responsible for calling update functions in most of the classes in order to maintain the synchronization of all of the different parts.</p>
+<p align="left"> In order to pass on game events from the UI to the logic classes, CFApp will poll the UI classes for GameMessages, which describe events caused by the user clicking buttons, selecting Cards or accessing menus.  These events are then kept by the CFApp class until they are taken by the CFLogic class for processing.</p>
+<p align="left"> The Sound class is attached to the UI classes.  Whenever actions are performed, a message is sent to the Sound class to determine if the action has an attached sound byte that it can play.  All sounds are managed in real time to allow for multiple sounds at once (for example, sound effects and music.)</p>
+<p align="left"> The GameBoard includes a Deck of Cards as well as a list of Cards that are currently on the abstract game board.  The class manages all of the cards, as well as the user-selected ones, and notifies the CFLogic class once three cards have been selected for verification by the ClusterManager.  The ClusterManager is called to decide whether or not the cluster is valid, and is also used in procuring clusters from the current cards on the GameBoard when dealing with AI players.</p>
+<p align="left"> The Player classes (both Human and AI) contain all score information and, in the case of the AI players, the time until the next cluster is grabbed.  These classes exist through abstraction, acting simply as place holders to identify who is currently creating a cluster and who has what score.</p>
+<p align="left">&nbsp;</p>
+<p align="center" class="style1"> Design Issues</p>
+<p align="left"><strong> Issue #1</strong></p>
+<p align="left"> <u>Should Java Graphics be used or a Graphics Library for the UI implementation?</u><br />
+</p>
+<p align="left"><u>Alternative A</u>:  Implement the program using Java's Graphics.  Advantages:  The Java Graphics are already included in Java.  Disadvantages:  The Java Graphics library is limited in what it can do and in flexibility for the programmers.<br />
+  <u>Alternative B</u>:  Use a different Graphics library.  Advantages:  A different Graphics library could potentially have an increase of quality and resource usage over the Java Graphics library. Disadvantages:  The programmer would have to learn a new Graphics library to implement into the program.<br />
+  Decision:  Alternative B.  The flexibility offered by using a different Graphics library would deliver a more polished end product than if the Java Graphics library was used.<br />
+ </p>
+<p align="left"><br />
+  <strong>Issue #2</strong></p>
+<p align="left">  <u>Should the program be driven by the UI or another control class?</u></p>
+<p align="left">  <u>Alternative A</u>:  UI driven.  Advantages:  Each UI would have a more powerful way of running through the program.  Some UI functionality would be limited if the UI needs access to data that the control class could not provide.  Disadvantages:  Each new implementation of a UI would need to know how the rest of the program worked.  It would be prone to errors and flaws due to having to interact manually with everything else.<br />
+  <u>Alternative B</u>:  Another control class.  Advantages:  Abstracting out the running of the program to another class allows for more encapsulation from the rest of the program.  It has a more standardized way of driving the program and allows the UI to be more simplistic.  This also ensures the integrity of program behavior to run in the same way every time.  Disadvantages:  Limits the way the program can run.  A UI driven environment can offer unique extra features depending on the UI instead of trying to standardize features across multiple UI implementations.<br />
+  </p>
+<p align="left"><u>Decision</u>:  Alternative B.  Conceptually, the UI should only handle interactions with the user, and a separate class outside of the UI or logic would make more sense.  This also allows the programmer to add new interfaces to the program without being locked into driving the program through the UI.<br />
+   </p>
+<p align="left"><br />
+  <strong>Issue #3</strong></p>
+<p align="left">  <u>Should the state of the game and its players be abstracted out into its own class, stored within Logic, or stored within GameBoard?</u></p>
+<p align="left">  <u>Alternative A</u>:  Abstract out a GameState class.  Advantages:  This allows for a simpler model of the other abstractions in the program. It also allows for an easier way to manage the game state for resets and game mode changes.  Disadvantages:  A more complex overall model as more classes exist.  Implementation would be more difficult because abstractions would need to be worked around.<br />
+  <u>Alternative B</u>:  Store the game state within the Logic class.  Advantages:  Logic would be manipulating the game state the most, and having ready access stored within Logic would make implementation simpler and easier.  Disadvantages:  Conceptually harder to manage the game state.  Logic should cover the processing and computational portion of the program, and game state does not process or compute data.<br />
+  <u>Alternative C</u>:  Store the game state within the GameBoard class.  Advantages:  GameBoard becomes an easily accessible class to request information about the current state of the game. Disadvantages:  The GameBoard acts as a database of the cards and other more static representations of the game.  Having dynamic data that would change constantly throughout the game would not make sense.<br />
+</p>
+<p align="left"><u>Decision</u>:  Alternative A.  Having a GameState class allows for more flexibility in modifying the running of the game.  Any other alternative would require extra code for every class in order for game restarts and changing of game modes to occur.<br />
+ </p>
+<p align="left"><br />
+  <strong>Issue #4</strong></p>
+<p align="left"> <u>Should cluster verification and detection occur through GameLogic or a separate class?</u></p>
+<p align="left">  <u>Alternative A</u>:  GameLogic verifies clusters.  Advantages:  GameLogic will do a bulk of the thinking and processing the program does.  It would seem logical for it to handle the verification of clusters. Disadvantages:  GameLogic does a lot of processing already, and cluster detection and verification sounds like a separate AI entity.<br />
+  <u>Alternative B</u>:  A separate class verifies clusters.  Advantages:  The algorithm required for finding clusters would be somewhat complex, and leaving it to be processed in another class would abstract out a large portion of extra work from GameLogic.<br />
+</p>
+<p align="left"><u>Decision</u>:  Alternative A.  GameLogic becomes a skeleton class that calls the set processor if set detection and verification gets abstracted out.  GameLogic will retain all the set logic and no separate class will be abstracted out.<br />
+ </p>
+<p align="left"><br />
+  <strong>Issue #5</strong></p>
+<p align="left"> <u>The communications between classes are decentralized in the current model.  An overarching message system over the program would streamline communication and allow a more simple approach to game changing events.  It would be a centralized driver that maintains a simple, sequential order to event delivery.</u></p>
+<p align="left"> <u>Alternative A</u>:  Maintain the current system.  Advantages:  Eliminates the need for an entirely new system and class.  It would prevent modification to multiple classes and their methods.  Disadvantages:  Without clearing up the mess of communication, the sequence of events and requests are difficult to understand and retrace.<br />
+  <u>Alternative B</u>: Create a messaging system.  Advantages:  Simplifies a lot of the communication between classes.  It allows for events to be easily traceable to the callers and runners.  Disadvantages:  Many of the classes would need to be restructured to use and listen to the messaging system.<br />
+</p>
+<p align="left">  <u>Decision</u>:  Alternative B.  The simplified traceability and event handling makes the modeling the entire program much easier.  Interclass communication would make integrating much easier as well.</p>
+<p align="center" class="style1">&nbsp;</p>
+<p align="center" class="style1">Data Structures</p>
+<p align="left"> <strong>Enums</strong>                   The fields stored within the Card class contain a limited number of named variables that are unique to the identification of a Card.  <br />
+                                 Using enums allows for integrity of the variables and ease of adding more variables later.<br />
+   <br />
+  <strong>ArrayList</strong>              The Card objects stored within the Deck are stored as an ArrayList.  This allows the Deck to be shuffled while allowing a dynamic number of cards within the Deck.<br />
+   <br />
+  <strong>Array</strong>                     The field and the selected cards are stored as an Array.  The field needs to be able to have cards dealt to a specific location, and the maximum number of selected cards for the set is 3. <br />
+                              This allows for indexing and preservation of maximum size.<br />
+   <br />
+  <strong>Queue</strong>                    A queue is used to hold all the sounds.  Sound in the game is handled in a first come, first serve basis, and a queue models this behavior.<br />
+   <br />
+  </p>
+<p align="left"><strong>Card</strong><br />
+</p>
+<p align="left"><u>Color</u>               The color of the card<br />
+  <u>Number</u>           The number of symbols on the card<br />
+  <u>Symbol</u>            The symbol on the card<br />
+  <u>Fill</u>                   The fill or shading of the card<br />
+</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p align="center" class="style1">Tools</p>
+<p>&nbsp;</p>
+<table border="1" cellspacing="3" cellpadding="3">
+  <tr><th>Tool</th><th>Use</th><th>Version</th></tr>
+  <tr><td>Trac</td><td>Project Tracking/Defect Tracking/Project Website</td><td>0.10.4</td></tr>
+  <tr><td>Subversion</td><td>Code Versioning</td><td>1.5</td></tr>
+  <tr><td>Javadoc</td><td>Class Skeletons</td><td>1.5</td></tr>
+  <tr><td>Javac Java Compiler (from Java Developer Kit 1.6.0)</td><td>Compilation,Debugging</td><td>1.6.0</td></tr>
+  <tr><td>JUnit</td><td>Unit Testing</td><td>4.1</td></tr>
+  <tr><td>Violet,Omnigraffle</td><td>Modeling, UML Drawings</td><td>Violet: 0.15, Omnigraffle: 5.0</td></tr>
+  <tr><td>Emma</td><td>Coverage Measurement</td><td>2.0.5</td></tr>
+  <tr><td>Abbot and Costello</td><td>System/GUI Testing</td><td>1.0.2</td></tr>
+  <tr><td>Netbeans IDE</td><td>Development Environment</td><td>6.1</td></tr>
+  <tr><td>Eclipse</td><td>Development Environment</td><td>3.4</td></tr>
+  <tr><td>Textmate</td><td>Development Tool + Editor</td><td>1.5.7</td></tr>
+  <tr><td>Notepad/TextEdit/Vim/Emacs</td><td>Text Editor</td><td>Various (inconsequential)</td></tr>
+  <tr><td>Pencil+Paper, Slife, Time Logger</td><td>Time Tracking</td><td>Various (inconsequential)</td></tr>
+  <tr><td>Fedora 9</td><td>Compilation environment for release buildss</td><td>9</td></tr>
+
+</table>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p align="center"><span class="style1">Libraries</span><br />
+</p>
+<p align="left">An OpenGL port called LWJGL will be used to handle smooth, crisp animations and graphics both two dimensional and three dimensional.<br />
+Standard Java Libraries will also be utilized.</p>
+<p align="center" class="style1">External References</p>
+<p align="left"> Mr. Dalbey’s 308 Coding Standard: http://users.csc.calpoly.edu/%7Ejdalbey/SWE/code_std.html<br />
+  Specification Requirement Document:      http://wiki.csc.calpoly.edu/10k/wiki/SRS<br />
+  Class Diagram: 			     http://wiki.csc.calpoly.edu/10k/wiki/SetClassDiagram<br />
+  Prototype:				     http://wiki.csc.calpoly.edu/10k/wiki/SetUIPrototype<br />
+  Quality Attributes: 			     http://wiki.csc.calpoly.edu/10k/wiki/SetQualityAttributes</p>
+</body>
+</html>

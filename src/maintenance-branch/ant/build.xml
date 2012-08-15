@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="ClusterFun" basedir="../." default="clean-build">
+    <property file="build.properties"/>
+    <property name="main-class"  value="clusterfun.app.CFApp"/>
+    <path id="lib.path.ref">
+        <fileset dir="lib" includes="*.jar"/>
+    </path>
+    <target name="clean">
+        <delete dir="${doc.dir}"/>
+        <delete dir="${build.dir}"/>
+    </target>
+    <target name="compile">
+        <mkdir dir="${classes.dir}"/>
+        <javac destdir="${classes.dir}" classpath="." 
+            debug="true" debuglevel="lines,source" target="1.5">
+            <classpath refid="lib.path.ref"/>
+            <src path="${src.dir}"/>
+            <include name="clusterfun/**"/>
+        </javac>
+        <mkdir dir="${classes.dir}/resources/"/>
+        <copy todir="${classes.dir}/resources/">
+            <fileset dir="${src.dir}/resources/"/>
+        </copy>
+    </target>
+    <target name="jar" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/${ant.project.name}.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${main-class}"/>
+                <attribute name="Class-Path" value="lib/jinput.jar lib/junit-4.1.jar lib/lwjgl.jar lib/lwjgl_util.jar"/>
+            </manifest>
+        </jar>
+        <mkdir dir="${jar.dir}/lib/"/>
+        <copy todir="${jar.dir}/lib">
+            <fileset dir="lib"/>
+        </copy>
+        <copy file="config.properties" todir="${jar.dir}"/>
+        <copy file="release/clusterfun.bat" todir="${jar.dir}"/>
+        <chmod file="release/clusterfun.bat" perm="777"/>
+        <copy file="release/clusterfun.sh" todir="${jar.dir}"/>
+        <chmod file="release/clusterfun.sh" perm="777"/>
+        <copy file="release/clusterfunMac.sh" todir="${jar.dir}"/>
+        <chmod file="release/clusterfunMac.sh" perm="777"/>
+
+        <copy file="release/clusterfun-SOFTWARE.bat" todir="${jar.dir}"/>
+        <copy file="release/clusterfun-SOFTWARE.sh" todir="${jar.dir}"/>
+        <copy file="release/clusterfunMac-SOFTWARE.sh" todir="${jar.dir}"/>
+        
+    </target>
+    <target name="run" depends="jar">
+        <java jar="${jar.dir}/${ant.project.name}.jar" fork="true"/>
+    </target>
+    <target name="run-console" depends="jar">
+        <java jar="${jar.dir}/${ant.project.name}.jar" fork="true">
+            <arg value="-c"/>
+        </java>
+    </target>
+    <target name="compile-test" depends="clean,compile">
+        <javac destdir="${classes.dir}" classpath="${src.dir}:lib/junit-4.1.jar:lib/ant-junit.jar"
+                debug="true" debuglevel="lines,source" target="1.5">
+            <src path="${test.src.dir}"/>
+            <classpath refid="lib.path.ref"/>
+            <include name="clusterfun/**"/>
+        </javac>
+    </target>
+    <target name="clean-build" depends="clean,jar">
+        <delete file="${jar.dir}/lib/ant-junit.jar"/>
+        <delete file="${jar.dir}/lib/emma.jar"/>
+        <delete file="${jar.dir}/lib/junit-4.1.jar"/>
+        <delete file="${jar.dir}/lib/lwjgl_test.jar"/>
+        <delete file="${jar.dir}/lib/lwjgl_util_applet.jar"/>
+        <delete file="${jar.dir}/lib/nblibraries.properties"/>
+        <delete file="${jar.dir}/lib/nblibraries-private.properties"/>
+        <delete dir="${jar.dir}/lib/CopyLibs"/>
+        <delete dir="${jar.dir}/lib/junit"/>
+        <delete dir="${jar.dir}/lib/junit_4"/>
+        <delete dir="${jar.dir}/lib/native/solaris"/>
+        <zip destfile="${build.dir}/release1_1.zip">
+            <fileset dir="${jar.dir}"/>
+        </zip>
+    </target>
+    <target name="javadoc" depends="clean,compile">
+        <mkdir dir="${doc.dir}"/>
+        <javadoc destdir="${doc.dir}">
+            <classpath refid="lib.path.ref"/>
+            <tag name=".date" description="Date:" enabled="true"/>
+            <arg value="-private"/>
+            <arg value="-overview"/>
+            <arg path="projectoverview.html"/>
+            <fileset dir="${src.dir}/" includes="**/*.java" />
+        </javadoc>
+    </target>
+</project>

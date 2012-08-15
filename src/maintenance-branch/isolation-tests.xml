@@ -1,0 +1,482 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="CF-Isolate" basedir="." default="all-isolation-tests">
+
+    <property file="build.properties"/>
+    
+    <target name="all-isolation-tests" depends="GraphicUI-driver,GameWindow-driver,CFApp-driver,GameBoard-junit-test,
+    Card-junit-test,Deck-junit-test,CFLogic-junit-test,MessageManager-junit-test,HumanPlayer-junit-test,CFState-junit-test"/>
+    
+    <path id="junit.lib.path.ref">
+        <fileset dir="lib" includes="junit-4.1.jar"/>
+    </path>
+
+    <path id="lib.path.ref">
+        <fileset dir="lib" includes="*.jar"/>
+    </path>
+
+    <target name="clean">
+        <delete dir="${classes.dir}"/>
+        <delete dir="${build.dir}"/>
+    </target>
+    
+    <target name="compile">
+        <mkdir dir="${classes.dir}"/>
+        <javac destdir="${classes.dir}" classpath="${src.dir}"
+                debug="true" debuglevel="lines,source">
+            <src path="${src.dir}"/>
+            <classpath refid="lib.path.ref"/>
+            <exclude name="FAKES/**"/>
+        </javac>
+    </target>
+
+    <target name="compile-test" depends="clean,compile">
+        <javac destdir="${classes.dir}" debug="true" debuglevel="lines,source">
+            <src path="${test.src.dir}"/>
+            <classpath refid="lib.path.ref"/>
+            <classpath path="${run.test.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <include name="clusterfun/**"/>
+        </javac>
+    </target>
+    
+<!-- GraphicUI Driver Test ================================================= -->
+    <target name="GraphicUI-driver">
+        <ant target="clean"/>
+        <!-- Create the classes directory after cleaning up the folders -->
+        <mkdir dir="${classes.dir}"/>
+
+        <!-- Generate the GraphicUI class -->
+        <javac destdir="${classes.dir}" classpath="${javac.classpath}"
+                debug="true" debuglevel="lines,vars,source">
+            <classpath refid="lib.path.ref"/>
+            <src path="${src.dir}"/>
+            <include name="clusterfun/ui/GraphicUI.java"/>
+        </javac>
+        
+        <delete file="${classes.dir}/clusterfun/ui/window/GameWindow.class"/>
+        
+        <!-- Generate the fake GameWindow class -->
+        <javac destdir="${classes.dir}" classpath="${javac.classpath}"
+                debug="true" debuglevel="lines,vars,source">
+            <classpath refid="lib.path.ref"/>
+            <src path="${fake.src.dir}"/>
+            <include name="clusterfun/ui/window/GameWindow.java"/>
+        </javac>
+        
+        <!-- Generate the fake GraphicUI test driver -->
+        <javac destdir="${classes.dir}"
+                debug="true" debuglevel="lines,vars,source">
+            <classpath path="${javac.test.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <src path="${test.src.dir}"/>
+            <include name="clusterfun/ui/GraphicUIDriver.java"/>
+        </javac>
+        
+        <!-- Run the application with a set input and output -->
+        <java classname="clusterfun.ui.GraphicUIDriver"
+                output="test/data/oracles/GraphicUI.results.fake"
+                fork="true">
+            <classpath path="${run.classpath}"/>
+            <arg value="-c"/>
+        </java>
+
+        <!-- Check the differences between the output and the oracle -->
+        <exec executable="diff">
+            <arg value="-b"/>
+            <arg file="test/data/oracles/GraphicUI.results.fake"/>
+            <arg file="test/data/oracles/GraphicUI.oracle.fake"/>
+        </exec>
+    </target>
+
+<!-- GameWindow Driver Test ================================================ -->
+    <target name="GameWindow-driver">
+        <ant target="clean"/>
+        <!-- Create the classes directory after cleaning up the folders -->
+        <mkdir dir="${classes.dir}"/>
+
+        <!-- Generate the GraphicUI class -->
+        <javac destdir="${classes.dir}" classpath="${javac.classpath}"
+                debug="true" debuglevel="lines,vars,source">
+            <classpath refid="lib.path.ref"/>
+            <src path="${src.dir}"/>
+            <exclude name="clusterfun/ui/state/InGameState*"/>
+            <exclude name="clusterfun/ui/state/SettingsMenuState.java"/>
+            <include name="clusterfun/ui/window/*.java"/>
+            <include name="clusterfun/ui/state/GameState.java"/>
+        </javac>
+
+        <delete file="${classes.dir}/clusterfun/ui/state/InGameState.class"/>
+        <delete file="${classes.dir}/clusterfun/ui/state/SettingsMenuState.class"/>
+        
+        <!-- Generate the fake GameWindow class -->
+        <javac destdir="${classes.dir}" classpath="${javac.classpath}"
+                debug="true" debuglevel="lines,vars,source">
+            <classpath refid="lib.path.ref"/>
+            <src path="${fake.src.dir}"/>
+            <include name="clusterfun/ui/state/InGameState.java"/>
+            <include name="clusterfun/ui/state/SettingsMenuState.java"/>
+        </javac>
+
+        <!-- Generate the fake GraphicUI test driver -->
+        <javac destdir="${classes.dir}"
+                debug="true" debuglevel="lines,vars,source">
+            <classpath path="${javac.test.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <src path="${test.src.dir}"/>
+            <include name="clusterfun/ui/GameWindowDriver.java"/>
+        </javac>
+
+        <!-- Run the application with a set input and output -->
+        <java classname="clusterfun.ui.GameWindowDriver"
+                output="test/data/oracles/GameWindow.results.fake"
+                fork="true" jvmargs="-Djava.library.path=./lib/native/linux/">
+            <classpath refid="lib.path.ref"/>
+            <classpath path="${run.classpath}"/>
+            <arg value="-c"/>
+        </java>
+
+        <!-- Check the differences between the output and the oracle -->
+        <exec executable="diff">
+            <arg value="-b"/>
+            <arg file="test/data/oracles/GameWindow.results.fake"/>
+            <arg file="test/data/oracles/GameWindow.oracle.fake"/>
+        </exec>
+    </target>
+    
+ <!-- CFApp Driver Test ==================================================== -->
+    <target name="CFApp-driver">
+        <ant target="clean"/>
+        <!-- Create the classes directory after cleaning up the folders -->
+        <mkdir dir="${classes.dir}"/>
+        <!-- Generate the GraphicUI class -->
+        <javac destdir="${classes.dir}" classpath="${javac.classpath}"
+                debug="true" debuglevel="lines,vars,source">
+            <classpath refid="lib.path.ref"/>
+            <src path="${src.dir}"/>
+            <include name="clusterfun/ui/BasicUI.java"/>
+            <exclude name="clusterfun/ui/TextUI.java"/>
+            <include name="clusterfun/app/CFApp.java"/>
+        </javac>
+
+        <delete file="${classes.dir}/clusterfun/ui/TextUI.class"/>
+        <delete file="${classes.dir}/clusterfun/ui/GraphicUI.class"/>
+        <delete file="${classes.dir}/clusterfun/logic/CFLogic.class"/>
+        <delete file="${classes.dir}/clusterfun/state/CFState.class"/>
+        
+        <!-- Generate the fake GameWindow class -->
+        <javac destdir="${classes.dir}" classpath="${javac.classpath}"
+                debug="true" debuglevel="lines,vars,source">
+            <classpath refid="lib.path.ref"/>
+            <src path="${fake.src.dir}"/>
+            <include name="clusterfun/ui/TextUI.java"/>
+            <include name="clusterfun/logic/CFLogic.java"/>
+            <include name="clusterfun/ui/GraphicUI.java"/>
+            <include name="clusterfun/state/CFState.java"/>
+        </javac>
+
+        <!-- Generate the fake GraphicUI test driver -->
+        <javac destdir="${classes.dir}"
+                debug="true" debuglevel="lines,vars,source">
+            <classpath path="${javac.test.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <src path="${test.src.dir}"/>
+            <include name="clusterfun/app/CFAppDriver.java"/>
+        </javac>
+
+        <!-- Run the application with a set input and output -->
+        <java classname="clusterfun.app.CFAppDriver"
+                output="test/data/oracles/CFApp.results.fake"
+                fork="true" jvmargs="-Djava.library.path=./lib/native/linux/">
+            <classpath refid="lib.path.ref"/>
+            <classpath path="${run.classpath}"/>
+            <arg value="-c"/>
+        </java>
+
+        <!-- Check the differences between the output and the oracle -->
+        <exec executable="diff">
+            <arg value="-b"/>
+            <arg file="test/data/oracles/CFApp.results.fake"/>
+            <arg file="test/data/oracles/CFApp.oracle.fake"/>
+        </exec>
+    </target>
+
+<!-- GameBoard Junit test ================================================== -->
+    <target name="GameBoard-junit-test">
+        <ant target="clean"/>
+        
+        <mkdir dir="${classes.dir}"/>
+        
+        <javac destdir="${classes.dir}" debug="true" debuglevel="lines,source">
+            <src path="${src.dir}"/>
+            <classpath refid="lib.path.ref"/>
+            <classpath path="${run.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <include name="clusterfun/board/**"/>
+        </javac>
+        
+        <delete file="${classes.dir}/clusterfun/board/Deck.class"/>
+        
+        <!-- Generate the fake GameWindow class -->
+        <javac destdir="${classes.dir}" classpath="${javac.classpath}"
+                debug="true" debuglevel="lines,vars,source">
+            <classpath refid="lib.path.ref"/>
+            <src path="${fake.src.dir}"/>
+            <include name="clusterfun/board/Deck.java"/>
+            <include name="clusterfun/ui/state/SettingsMenuState.java"/>
+        </javac>
+
+        <javac destdir="${classes.dir}" debug="true" debuglevel="lines,source">
+            <src path="${test.src.dir}"/>
+            <classpath path="${run.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <include name="clusterfun/board/GameBoardTest.java"/>
+        </javac>
+
+        <junit fork="true" haltonfailure="false" printsummary="on" showoutput="true" dir="." >
+            <classpath path="${run.test.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <batchtest fork="yes" todir="${reports.dir}">
+                <fileset dir="${test.src.dir}">
+                    <include name="clusterfun/board/GameBoardTest.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+    
+<!-- CardTest Junit test =================================================== -->
+    <target name="Card-junit-test">
+        <ant target="clean"/>
+        
+        <mkdir dir="${classes.dir}"/>
+        
+        <javac destdir="${classes.dir}" debug="true" debuglevel="lines,source">
+            <src path="${src.dir}"/>
+            <classpath refid="lib.path.ref"/>
+            <classpath path="${run.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <include name="clusterfun/board/**"/>
+        </javac>
+
+        <javac destdir="${classes.dir}" debug="true" debuglevel="lines,source">
+            <src path="${test.src.dir}"/>
+            <classpath path="${run.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <include name="clusterfun/board/CardTest.java"/>
+        </javac>
+
+        <junit fork="true" haltonfailure="false" printsummary="on" showoutput="true" dir="." >
+            <classpath path="${run.test.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <batchtest fork="yes" todir="${reports.dir}">
+                <fileset dir="${test.src.dir}">
+                    <include name="clusterfun/board/CardTest.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+    
+<!-- DeckTest Junit test =================================================== -->
+    <target name="Deck-junit-test">
+        <ant target="clean"/>
+        
+        <mkdir dir="${classes.dir}"/>
+        
+        <javac destdir="${classes.dir}" debug="true" debuglevel="lines,source">
+            <src path="${src.dir}"/>
+            <classpath refid="lib.path.ref"/>
+            <classpath path="${run.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <include name="clusterfun/board/**"/>
+        </javac>
+
+        <javac destdir="${classes.dir}" debug="true" debuglevel="lines,source">
+            <src path="${test.src.dir}"/>
+            <classpath path="${run.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <include name="clusterfun/board/DeckTest.java"/>
+        </javac>
+
+        <junit fork="true" haltonfailure="false" printsummary="on" showoutput="true" dir="." >
+            <classpath path="${run.test.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <batchtest fork="yes" todir="${reports.dir}">
+                <fileset dir="${test.src.dir}">
+                    <include name="clusterfun/board/DeckTest.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+    
+<!-- CFLogic Junit test =================================================== -->
+    <target name="CFLogic-junit-test">
+        
+        <ant target="clean"/>
+        
+        <mkdir dir="${classes.dir}"/>
+        
+        <javac destdir="${classes.dir}" debug="true" debuglevel="lines,source">
+            <src path="${src.dir}"/>
+            <classpath refid="lib.path.ref"/>
+            <classpath path="${run.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <include name="clusterfun/logic/CFLogic.java"/>
+            <include name="clusterfun/ui/BasicUI.java"/>
+        </javac>
+        
+        <delete file="${classes.dir}/clusterfun/app/CFApp.class"/>
+        <delete file="${classes.dir}/clusterfun/state/CFState.class"/>
+        <delete file="${classes.dir}/clusterfun/board/GameBoard.class"/>
+        
+        <!-- GENERATE FAKES -->
+        <javac destdir="${classes.dir}" classpath="${javac.classpath}"
+                debug="true" debuglevel="lines,vars,source">
+            <classpath refid="lib.path.ref"/>
+            <src path="${fake.src.dir}"/>
+            <include name="clusterfun/state/CFState.java"/>
+            <include name="clusterfun/app/CFApp.java"/>
+            <include name="clusterfun/board/GameBoard.java"/>
+        </javac>
+
+        <javac destdir="${classes.dir}" debug="true" debuglevel="lines,source">
+            <src path="${test.src.dir}"/>
+            <classpath path="${run.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <include name="clusterfun/logic/CFLogicTest.java"/>
+        </javac>
+
+        <junit fork="true" haltonfailure="false" printsummary="on" showoutput="true" dir="." >
+            <classpath path="${run.test.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <batchtest fork="yes" todir="${reports.dir}">
+                <fileset dir="${test.src.dir}">
+                    <include name="clusterfun/logic/CFLogicTest.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+    
+<!-- MessageManager Junit test ============================================= -->
+    <target name="MessageManager-junit-test">
+        
+        <ant target="clean"/>
+        
+        <mkdir dir="${classes.dir}"/>
+        
+        <javac destdir="${classes.dir}" debug="true" debuglevel="lines,source">
+            <src path="${src.dir}"/>
+            <classpath refid="lib.path.ref"/>
+            <classpath path="${run.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <include name="clusterfun/message/MessageManager.java"/>
+        </javac>
+
+        <javac destdir="${classes.dir}" debug="true" debuglevel="lines,source">
+            <src path="${test.src.dir}"/>
+            <classpath path="${run.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <include name="clusterfun/message/MessageManagerTest.java"/>
+        </javac>
+
+        <junit fork="true" haltonfailure="false" printsummary="on" showoutput="true" dir="." >
+            <classpath path="${run.test.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <batchtest fork="yes" todir="${reports.dir}">
+                <fileset dir="${test.src.dir}">
+                    <include name="clusterfun/message/MessageManagerTest.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+    
+<!-- HumanPlayer Junit test ================================================ -->
+    <target name="HumanPlayer-junit-test">
+        
+        <ant target="clean"/>
+        <mkdir dir="${classes.dir}"/>
+        
+        <javac destdir="${classes.dir}" debug="true" debuglevel="lines,source">
+            <src path="${src.dir}"/>
+            <classpath path="${run.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <include name="clusterfun/player/HumanPlayer.java"/>
+            <include name="clusterfun/player/AbstractPlayer.java"/>
+        </javac>
+        
+        <javac destdir="${classes.dir}" debug="true" debuglevel="lines,source">
+            <src path="${test.src.dir}"/>
+            <classpath path="${run.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <include name="clusterfun/player/HumanPlayerTest.java"/>
+        </javac>
+
+        <junit fork="true" haltonfailure="false" printsummary="on" showoutput="true" dir="." >
+            <classpath path="${run.test.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <batchtest fork="yes" todir="${reports.dir}">
+                <fileset dir="${test.src.dir}">
+                    <include name="clusterfun/player/HumanPlayerTest.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+    
+<!-- CFState Junit test ================================================ -->
+    <target name="CFState-junit-test">
+        <ant target="clean"/>
+        <mkdir dir="${classes.dir}"/>
+        
+        <javac destdir="${classes.dir}" debug="true" debuglevel="lines,source">
+            <src path="${src.dir}"/>
+            <classpath path="${run.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <include name="clusterfun/state/CFState.java"/>
+            <include name="clusterfun/ui/BasicUI.java"/>
+            <include name="clusterfun/player/AbstractPlayer.java"/>
+        </javac>
+        
+        <delete file="${classes.dir}/clusterfun/board/GameBoard.class"/>
+        <delete file="${classes.dir}/clusterfun/logic/CFLogic.class"/>
+        <delete file="${classes.dir}/clusterfun/board/Deck.class"/>
+        
+        <!-- GENERATE FAKES -->
+        <javac destdir="${classes.dir}" classpath="${javac.classpath}"
+                debug="true" debuglevel="lines,vars,source">
+            <classpath refid="lib.path.ref"/>
+            <src path="${fake.src.dir}"/>
+            <include name="clusterfun/board/GameBoard.java"/>
+            <include name="clusterfun/board/Deck.java"/>
+            <include name="clusterfun/logic/CFLogic.java"/>
+            <include name="clusterfun/player/HumanPlayer.java"/>
+            <include name="clusterfun/app/CFApp.java"/>
+        </javac>
+
+        <javac destdir="${classes.dir}" debug="true" debuglevel="lines,source">
+            <src path="${test.src.dir}"/>
+            <classpath path="${run.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <include name="clusterfun/state/CFStateTest.java"/>
+        </javac>
+
+        <junit fork="true" haltonfailure="false" printsummary="on" showoutput="true" dir="." >
+            <classpath path="${run.test.classpath}"/>
+            <classpath refid="junit.lib.path.ref"/>
+            <batchtest fork="yes" todir="${reports.dir}">
+                <fileset dir="${test.src.dir}">
+                    <include name="clusterfun/state/CFStateTest.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+
+<!-- All JUnit Tests ======================================================= -->
+    <target name="all-junit-tests" depends="clean, compile-test">
+        
+    </target>
+    
+<!-- All Drivers ====================================================== -->
+    <target name="all-drivers" depends="clean, compile-test">
+        
+    </target>
+    
+</project>

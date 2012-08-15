@@ -1,0 +1,241 @@
+<!-- =================================================================== -->
+<!--     Daily Build script                                              -->
+<!-- =================================================================== -->
+<project name="clusterfun" default="publish" basedir=".">
+    
+    <path id="lib.path.ref">
+        <fileset dir="../lib" includes="*.jar"/>
+    </path>
+    
+   <target name="init">
+      <!-- Define properties for maintainability -->
+      <property name="app" value="CFApp" />
+      <property name="pkg" value="clusterfun/app" />
+      <property name="sourceDir" value="../src" />
+      <property name="buildDir" value="../build" />
+      <property name="distDir"  location="../dist"/>
+      <property name="testDir"  location="../test"/>
+      <property name="webDir" value="${user.home}/www/${app}/" />
+      <property name="classpath" value="." />
+      <!-- Create the time stamp -->
+      <tstamp>
+        <format property="timestamp" pattern="MM/dd/yyyy hh:mm aa" />
+      </tstamp>
+      <!-- Create the build output log file -->
+      <property name="build.log.dir" location="${webDir}/Daily"/>
+      <mkdir dir="${build.log.dir}"/>
+      <property name="build.log.filename" value="build_${DSTAMP}_${TSTAMP}.log"/>
+      <record name="${build.log.dir}/${build.log.filename}"
+              loglevel="verbose" append="false"/>
+      <echo message="Build logged to ${build.log.filename}"/>
+      <!-- Declare the checkstyle task -->
+      <taskdef resource="checkstyletask.properties">
+       <classpath refid="lib.path.ref"/>
+       <classpath>
+               <pathelement location="checkstyle-all-4.4.jar"/>
+               <pathelement location="308checks.jar"/>
+       </classpath>
+       </taskdef>
+   </target>
+
+   <!-- =================================================================== -->
+   <!-- Remove old build directories                                        -->
+   <!-- =================================================================== -->
+   <target name="clean" depends="init">
+ 	 <echo>Removing build and dist directories</echo>
+ 	    <delete dir="${buildDir}"  failonerror="false"/>
+ 	    <delete dir="${distDir}"  failonerror="false"/>
+   </target>
+
+   <!-- =================================================================== -->
+   <!-- Obtain current sources from svn repository                          -->
+   <!-- =================================================================== -->
+   <target name="update" depends="clean">
+ 	    <echo>Updating source files from repository</echo>
+ 	    <exec executable="svn">
+ 	      <arg value="update"/>
+ 	      <arg value="../"/>
+ 	    </exec>
+   </target>
+
+   <!-- =================================================================== -->
+   <!-- Create a property for the current svn revision                      -->
+   <!-- =================================================================== -->
+   <target name="revision" depends="update,init">
+    <exec outputproperty="build.current.revision" executable="svnversion">
+        <arg line="-n" />
+ 	</exec>
+   </target>
+ 	
+   <!-- =================================================================== -->
+   <!-- Compile the source code                                             -->
+   <!-- =================================================================== -->
+   <target name="compile" depends="update,revision">
+    <echo>Compiling all application source and junit test files</echo>
+    <!-- Put the revision number into the source code -->
+ 	<replace file="${sourceDir}/${pkg}/${app}.java"
+             value="${build.current.revision}">
+	    <replacetoken>RevisionNumber</replacetoken>
+ 	</replace>
+ 	
+    <!-- Create the needed build directories -->
+    <mkdir dir="${buildDir}"/>
+    <mkdir dir="${buildDir}/classes"/>
+    <mkdir dir="${distDir}"/>
+
+    <!-- Compile sources  -->
+    <path id="lib.path.ref">
+        <fileset dir="../lib" includes="*.jar"/>
+    </path>
+    <javac destdir="${buildDir}/classes" classpath="." 
+            debug="true" debuglevel="lines,source">
+            <classpath refid="lib.path.ref"/>
+            <src path="${sourceDir}"/>
+            <include name="clusterfun/**"/>
+        </javac>
+    <javac destdir="${buildDir}/classes" classpath="${src.dir}:lib/junit-4.1.jar:lib/ant-junit.jar"
+                debug="true" debuglevel="lines,source">
+            <src path="${testDir}"/>
+            <classpath refid="lib.path.ref"/>
+            <include name="clusterfun/**"/>
+        </javac>
+    </target>
+   
+
+   <!-- =================================================================== -->
+   <!-- Check for coding style conformance.                                 -->
+   <!-- =================================================================== -->
+   <target name="style" depends="compile">
+     <checkstyle config="../lib/308style.xml" 
+                failOnViolation="false">
+       <fileset dir="${sourceDir}/clusterfun" includes="**/*.java">
+           <exclude name="lwjgl/*"/>
+       </fileset>
+     </checkstyle>
+   </target>
+
+   <!-- =================================================================== -->
+   <!-- Count the lines of code and output a report.                        -->
+   <!-- =================================================================== -->
+   <target name="LOC" depends="update, compile">
+       <exec executable="./cloc-1.07.pl">
+              <arg value="../src/clusterfun"/>
+ 	      <arg value="--by-file"/>
+ 	      <arg value="--match-f=\.java$"/>
+              <arg value="--report-file=${webDir}/Daily/${build.log.filename}-loc.txt"/>
+              <arg value="--no3"/>
+              <arg value="--force-lang=java"/>
+              <arg value="--exclude-dir=lwjgl"/>
+       </exec>
+   </target>
+
+   <!-- =================================================================== -->
+   <!-- Copy media files needed for the JAR                                 -->
+   <!-- =================================================================== >
+   <target name="copyresources" depends="update,compile">
+  	  <copy todir="${buildDir}/classes/${pkg}/resources">
+ 	    <fileset dir="${sourceDir}/${pkg}/resources/">
+ 	      <include name="*"/>
+ 	    </fileset>
+ 	  </copy>
+   </target-->
+
+   <!-- =================================================================== -->
+   <!-- Check for a successful compile                                      -->
+   <!-- =================================================================== -->
+   <target name="compile.check" depends="compile">
+      <condition property="compileok">
+            <available file="${buildDir}/classes/${pkg}/${app}.class"/>
+      </condition>
+   </target>
+
+   <!-- =================================================================== -->
+   <!-- Make the JAR file                                                   -->
+   <!-- =================================================================== -->
+   <target name="jar" depends="compile.check,init,revision" 
+           if="compileok"> <!-- copyresources -->
+    <jar destfile="${distDir}/${app}_r${build.current.revision}.jar" 
+         basedir="${buildDir}/classes"
+         manifest="../manifest.mf" 
+         includes="${pkg}/ "/>
+    <!-- Copy the jar to the public web folder -->
+ 	<copy file="${distDir}/${app}_r${build.current.revision}.jar"
+          todir="${webDir}/Daily" />
+    <!-- make jar public read -->
+    <chmod file="${webDir}/" perm="a+rx"  type="dir"/>
+    <chmod file="${webDir}/Daily/" perm="a+rx"  type="dir"/>
+<!--     <chmod dir="${webDir}/Daily/" perm="a+r" includes="**/*"/> -->
+    <chmod file="${webDir}/Daily/${app}_r${build.current.revision}.jar"
+           perm="a+r" type="file"/>
+   </target>
+    
+   <!-- =================================================================== -->
+   <!-- Make the javadocs                                                   -->
+   <!-- =================================================================== -->
+   <target name="docs" depends="jar,style">
+        <javadoc destdir="${distDir}/javadoc"
+             windowtitle="ClusterFun r${build.current.revision}" 
+             private="true" nohelp="true"
+             nodeprecated="true" nodeprecatedlist="true"
+             version="true" author="true" 
+             overview="projectoverview.html" >
+             <classpath refid="lib.path.ref"/>
+                 <!-- Exclude fake source files -->
+        <packageset dir="${sourceDir}" defaultexcludes="yes">
+            <include name="**"/>
+            <exclude name="FAKES/**"/>
+        </packageset>
+        <!-- Include "Date" tag definition -->
+            <tag name=".date" description="Date:" enabled="true"/>
+        </javadoc>
+    <!-- Copy the docs to the public web folder -->
+ 	<copy todir="${webDir}/Javadoc">
+ 	    <fileset dir="${distDir}/javadoc"/>
+	</copy>
+    <!-- make javadocs public read -->
+    <chmod file="${webDir}/Javadoc/" perm="a+rx" type="dir"/>
+    <chmod dir="${webDir}/Javadoc/" perm="a+rx" type="both"
+           includes="**/*"/>
+   </target>
+
+   <!-- =================================================================== -->
+   <!-- Publish the build report by appending HTML to the existing page.    -->
+   <!-- =================================================================== -->
+   <target name="publish.1" depends="docs,init,revision,LOC">
+    <echo file="${webDir}/Daily/index.html"
+          append="yes">
+      &lt;TR&gt;
+                &lt;TD&gt;${timestamp}&lt;/TD&gt;
+                &lt;TD&gt;${build.current.revision}&lt;/TD&gt;
+                &lt;TD&gt;???&lt;/TD&gt;
+                &lt;TD&gt;&lt;A HREF="${build.log.filename}-loc.txt"&gt;
+                LOC Report&lt;/A&gt;&lt;/TD&gt;
+                &lt;TD&gt;&lt;A HREF="${build.log.filename}"&gt;
+                Build Output&lt;/A&gt;&lt;/TD&gt;
+                &lt;TD&gt;
+    </echo> 
+   </target>
+   <!-- Only include a link to the JAR if the compile succeeded -->
+   <target name="publish.2" depends="publish.1,compile.check" 
+           if="compileok">
+    <echo file="${webDir}/Daily/index.html"
+          append="yes">
+                &lt;A HREF="${app}_r${build.current.revision}.jar"&gt;
+                ${app}_r${build.current.revision}.jar&lt;/A&gt;
+    </echo> 
+   </target>
+   <target name="publish" depends="publish.2">
+    <echo file="${webDir}/Daily/index.html"
+          append="yes">
+               &lt;/TD&gt;
+      &lt;/TR&gt;
+    </echo> 
+    <!-- make report page and build log public read -->
+    <chmod file="${webDir}/Daily/index.html" perm="a+r"/>
+    <chmod file="${build.log.dir}/${build.log.filename}"
+           perm="a+r" type="file"/>
+   </target>
+
+   
+</project>
+

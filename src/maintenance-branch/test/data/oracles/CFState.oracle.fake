@@ -1,0 +1,16 @@
+CFLogic constructor called
+CFLogic constructor called
+Testing init
+HumanPlayer has been constructed.
+Testing getActivePlayer
+Testing getGameBoard
+Testing getGameMode
+Testing getGameStatus
+Testing getPlayers
+Testing getTimeRemaining
+Testing update
+GameBoard.updateBoard() called
+GameBoard.deselectAllCards() called
+GameBoard.addThreeCards() called
+CFLogic update method called
+CFLogic update method called
